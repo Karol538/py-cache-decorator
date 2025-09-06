@@ -10,26 +10,27 @@ def is_hashable(obj: Any) -> bool:
 
 
 def cache(func: Callable[..., Any]) -> Callable[..., Any]:
-    _cache: dict[Tuple[Any, ...], Any] = {}
+    _cache = {}
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         if not all(is_hashable(arg) for arg in args) or not all(
-            is_hashable(v) for v in kwargs.values()
+            is_hashable(value) for value in kwargs.values()
         ):
             raise TypeError(
-                "Todos os argumentos devem ser imutáveis"
-                "e hashable"
+                "Todos os argumentos devem ser imutáveis e hashable."
             )
 
         key: Tuple[Any, ...] = args + tuple(sorted(kwargs.items()))
 
-        if key in _cache:
+        func_cache = _cache.setdefault(func, {})
+
+        if key in func_cache:
             print("Getting from cache")
-            return _cache[key]
+            return func_cache[key]
 
         print("Calculating new result")
         result = func(*args, **kwargs)
-        _cache[key] = result
+        func_cache[key] = result
         return result
 
     return wrapper
