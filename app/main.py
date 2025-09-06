@@ -10,12 +10,10 @@ def is_hashable(obj: Any) -> bool:
 
 
 def cache(func: Callable[..., Any]) -> Callable[..., Any]:
-    # Armazena cache por função decorada
     _global_cache: Dict[Callable[..., Any], Dict[Tuple[Any, ...], Any]] = {}
 
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        # Verifica se todos os argumentos são hashable
-        for arg in list(args) + list(kwargs.values()):
+    def wrapper(*args: Any) -> Any:
+        for arg in args:
             if not is_hashable(arg):
                 raise TypeError(
                     f"O argumento {arg} não é imutável ou hashable. "
@@ -23,10 +21,7 @@ def cache(func: Callable[..., Any]) -> Callable[..., Any]:
                     "strings ou números."
                 )
 
-        # Cria chave única e ordenada
-        key: Tuple[Any, ...] = args + tuple(sorted(kwargs.items()))
-
-        # Obtém cache específico da função
+        key: Tuple[Any, ...] = args
         func_cache = _global_cache.setdefault(func, {})
 
         if key in func_cache:
@@ -34,7 +29,7 @@ def cache(func: Callable[..., Any]) -> Callable[..., Any]:
             return func_cache[key]
 
         print("Calculating new result")
-        result = func(*args, **kwargs)
+        result = func(*args)
         func_cache[key] = result
         return result
 
