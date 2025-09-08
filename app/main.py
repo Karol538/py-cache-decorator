@@ -1,4 +1,5 @@
 from typing import Callable, Any, Dict, Tuple
+from functools import wraps
 
 
 def is_hashable(obj: Any) -> bool:
@@ -10,20 +11,18 @@ def is_hashable(obj: Any) -> bool:
 
 
 def cache(func: Callable[..., Any]) -> Callable[..., Any]:
-    # Cache exclusivo para a função decorada
     func_cache: Dict[Tuple[Any, ...], Any] = {}
 
+    @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        # Verifica se todos os argumentos são hashable
         for arg in list(args) + list(kwargs.values()):
             if not is_hashable(arg):
                 raise TypeError(
                     f"O argumento {arg} não é hashable. "
-                    "Certifique-se de usar tipos como tuplas, "
-                    "strings, números ou frozensets."
+                    "Use tipos como tuplas, strings, "
+                    "números ou frozensets."
                 )
 
-        # Cria chave única e ordenada para kwargs
         key: Tuple[Any, ...] = args + tuple(sorted(kwargs.items()))
 
         if key in func_cache:
