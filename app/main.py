@@ -10,23 +10,21 @@ def is_hashable(obj: Any) -> bool:
 
 
 def cache(func: Callable[..., Any]) -> Callable[..., Any]:
-    _global_cache: Dict[Callable[..., Any], Dict[Tuple[Any, ...], Any]] = {}
+    # Cache exclusivo para a função decorada
+    func_cache: Dict[Tuple[Any, ...], Any] = {}
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Verifica se todos os argumentos são hashable
         for arg in list(args) + list(kwargs.values()):
             if not is_hashable(arg):
                 raise TypeError(
-                    f"O argumento {arg} não é imutável ou hashable. "
-                    "Todos os argumentos devem ser tipos como tuplas,"
-                    "strings ou números."
+                    f"O argumento {arg} não é hashable. "
+                    "Certifique-se de usar tipos como tuplas, "
+                    "strings, números ou frozensets."
                 )
 
         # Cria chave única e ordenada para kwargs
         key: Tuple[Any, ...] = args + tuple(sorted(kwargs.items()))
-
-        # Cache isolado por função decorada
-        func_cache = _global_cache.setdefault(func, {})
 
         if key in func_cache:
             print("Getting from cache")
@@ -36,4 +34,5 @@ def cache(func: Callable[..., Any]) -> Callable[..., Any]:
         result = func(*args, **kwargs)
         func_cache[key] = result
         return result
+
     return wrapper
